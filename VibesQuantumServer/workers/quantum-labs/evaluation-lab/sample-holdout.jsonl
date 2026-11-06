@@ -1,0 +1,4 @@
+{"id":"sample-math-001","task_type":"mathematics","input":"What is 2 + 2? Answer with the number only.","expected":"4"}
+{"id":"sample-instruction-001","task_type":"instruction-following","input":"Reply with the single word BLUE and no other text.","expected":"BLUE"}
+{"id":"sample-language-001","task_type":"language-understanding","input":"What is the opposite of hot? Answer with one word.","expected":"cold"}
+{"id":"sample-logic-001","task_type":"logic","input":"All robins are birds. Are robins birds? Answer yes or no.","expected":"yes"}

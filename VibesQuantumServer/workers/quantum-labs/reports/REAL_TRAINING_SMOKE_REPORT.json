@@ -1,0 +1,52 @@
+{
+  "experiment": "ALIS tiny PyTorch SFT integration smoke test",
+  "classification": "REAL gradient-based training on a tiny byte-level GRU trained from scratch; not foundation-model fine-tuning and not production quality evidence",
+  "dataset": "training-service/examples/tiny-smoke-approved.jsonl",
+  "dataset_note": "Synthetic test fixture marked TEST_ONLY_SYNTHETIC_FIXTURE. Do not use as a production dataset.",
+  "first_run": {
+    "device": "cpu",
+    "device_name": "CPU",
+    "torch_version": "2.10.0+cpu",
+    "dataset_sha256": "4588c54e7c5124e87628ffd5ba305b6a16a07d1e1376e36bd87df7cc72f4c833",
+    "example_counts": {
+      "total": 12,
+      "train": 8,
+      "validation": 2,
+      "test": 2
+    },
+    "epochs_completed": 3,
+    "initial_train_loss": 5.622301060518772,
+    "final_train_loss": 4.29846312159257,
+    "initial_validation_loss": 5.548104604085286,
+    "final_validation_loss": 4.282175699869792,
+    "heldout_test_loss": 4.271117266486673,
+    "train_loss_decreased": true,
+    "parameter_fingerprint_before": "1b55c547a175fa768495f9f2651e391550a6b071bc15d3521acacc4c2405abf1",
+    "parameter_fingerprint_after": "b3b400921f103dce2e97ec00dd9429f55f6df7f27dec1fb8825f06dc88b20458",
+    "parameters_changed": true,
+    "elapsed_seconds": 0.2,
+    "available_ram_bytes_at_start": 4410851328,
+    "free_disk_bytes_at_start": 31999455232,
+    "max_runtime_seconds": 3600
+  },
+  "resume_run": {
+    "device": "cpu",
+    "resumed_from_epoch": 3,
+    "epochs_completed": 1,
+    "initial_train_loss": 4.29846312159257,
+    "final_train_loss": 3.909333263369773,
+    "heldout_test_loss": 3.886857874253217,
+    "train_loss_decreased": true,
+    "parameter_fingerprint_before": "b3b400921f103dce2e97ec00dd9429f55f6df7f27dec1fb8825f06dc88b20458",
+    "parameter_fingerprint_after": "75cdabf0ea99b8e25370169cd76fb61d0af58ceb63bd2e1d3fbab199720ee3dc",
+    "parameters_changed": true,
+    "elapsed_seconds": 0.084
+  },
+  "checkpoint_resume_verified": true,
+  "artifact_hashes": {
+    "model-state.pt": "14ef6422e06b4fba940eecfc59b7c8f6c89046a59571356bbb1f9d15893e7f54",
+    "checkpoint-last.pt": "0428bc61b5e7860ec40db7aabb010e7bb36c54e16a6de0878f612d271cb48a5b",
+    "metrics.json": "ef0f6275f4c4458c9b087bdcd5b8fa8a7b371486ba7b220b85a79a35c65d2d5f"
+  },
+  "promotion_decision": "NOT EVALUATED FOR PROMOTION. Tiny synthetic fixture, no meaningful generalization claim, and no independent production evaluator."
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vibes Vyron X</string>
+    <string name="app_tagline">Think beyond. Learn continuously.</string>
+    <string name="app_model_name">Vibes Core</string>
+    <string name="app_model_tagline">Your own AI platform</string>
+    <string name="auth_callback_scheme">vibesonly</string>
+    <string name="theme_default">obsidian</string>
+    <string name="language_section">Language and terminology</string>
+    <string name="interface_language_label">Interface language (staged)</string>
+    <string name="language_review_notice">Shona and Ndebele are progressive drafts and have not been approved by native-speaker reviewers. Some app screens remain in English. Do not rely on unreviewed translations for health, legal, finance, or farm-chemical decisions.</string>
+    <string name="language_updated_draft">Language preference saved. Some app text remains in English pending native-speaker review.</string>
+    <string name="language_english">English (en)</string>
+    <string name="language_shona_draft">ChiShona (sn) — draft</string>
+    <string name="language_ndebele_draft">isiNdebele (nd) — draft</string>
+    <string name="vyron_widget_description">Quick chat and voice shortcuts for Vibes Vyron X</string>
+</resources>

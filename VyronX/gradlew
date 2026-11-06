@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+if command -v gradle >/dev/null 2>&1; then
+    exec gradle "$@"
+fi
+
+if [ -n "${GRADLE_HOME:-}" ] && [ -x "$GRADLE_HOME/bin/gradle" ]; then
+    exec "$GRADLE_HOME/bin/gradle" "$@"
+fi
+
+echo "Gradle was not found on PATH. Install Gradle 9.6.1+ or open this project in Android Studio." >&2
+exit 127

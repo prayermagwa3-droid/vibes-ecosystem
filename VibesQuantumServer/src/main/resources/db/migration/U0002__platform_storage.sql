@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS gateway_usage_daily;
+DROP TABLE IF EXISTS cloud_spend_events;
+DROP TABLE IF EXISTS cloud_spend_daily;
+DROP TABLE IF EXISTS billing_purchases;
+DROP TABLE IF EXISTS subscriptions;
+DROP TABLE IF EXISTS conversation_device_cursors;
+DROP TABLE IF EXISTS conversation_messages;
+DROP TABLE IF EXISTS conversations;
+DROP TABLE IF EXISTS document_store;

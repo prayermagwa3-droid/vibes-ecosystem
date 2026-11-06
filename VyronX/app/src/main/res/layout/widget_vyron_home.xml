@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="@drawable/widget_vyron_background">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+        <TextView android:layout_width="38dp" android:layout_height="38dp" android:gravity="center" android:text="V" android:textStyle="bold" android:textSize="22sp" android:textColor="#FFFFFF" android:background="@drawable/widget_vyron_mark" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingStart="10dp">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VIBES VYRON X" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="14sp" />
+            <TextView android:id="@+id/widgetUpdatedAt" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ready" android:textColor="#A9B9D5" android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="Your AI, one tap away." android:textColor="#E5ECFA" android:textSize="16sp" android:textStyle="bold" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:text="Start a conversation or open voice studio." android:textColor="#A9B9D5" android:textSize="12sp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:orientation="horizontal">
+        <TextView android:id="@+id/widgetAskButton" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:gravity="center" android:text="✦  Ask Vibes" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="13sp" android:background="@drawable/widget_vyron_button" />
+        <TextView android:id="@+id/widgetVoiceButton" android:layout_width="0dp" android:layout_height="42dp" android:layout_weight="1" android:layout_marginStart="8dp" android:gravity="center" android:text="◖  Voice" android:textColor="#D9E7FF" android:textStyle="bold" android:textSize="13sp" android:background="@drawable/widget_vyron_secondary" />
+    </LinearLayout>
+</LinearLayout>

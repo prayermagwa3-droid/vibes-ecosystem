@@ -1,0 +1,10 @@
+.git
+.gradle
+build
+data
+backups
+.env
+*.env
+local.properties
+*.log
+.idea

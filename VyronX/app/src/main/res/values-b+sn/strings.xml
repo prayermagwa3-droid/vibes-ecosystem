@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vibes Vyron X</string>
+    <string name="app_tagline">Funga kupfuura. Ramba uchidzidza.</string>
+    <string name="language_section">Mutauro nemazwi ehunyanzvi</string>
+    <string name="interface_language_label">Mutauro weapp (danho rekutanga)</string>
+    <string name="language_review_notice">DRAFT — Shona neNdebele hazvisati zvaongororwa nevatauri vemitauro iyi. Mamwe mapeji eapp achiri muChirungu. Usavimba neshanduro dzisina kuongororwa pakuita sarudzo dzeutano, mutemo, mari kana mishonga yemuminda.</string>
+    <string name="language_updated_draft">Sarudzo yemutauro yachengetwa. Mamwe mashoko eapp achiri muChirungu kusvikira aongororwa nevatauri vemutauro.</string>
+    <string name="language_english">Chirungu (en)</string>
+    <string name="language_shona_draft">ChiShona (sn) — gwaro rekuongorora</string>
+    <string name="language_ndebele_draft">isiNdebele (nd) — gwaro rekuongorora</string>
+</resources>

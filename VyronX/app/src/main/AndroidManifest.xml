@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <queries>
+        <package android:name="com.vibes.vyronx" />
+    </queries>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application android:localeConfig="@xml/locales_config" android:theme="@style/AppTheme.Splash" android:label="@string/app_name" android:icon="@drawable/vibes_icon" android:roundIcon="@drawable/vibes_icon" android:allowBackup="false" android:usesCleartextTraffic="false" android:networkSecurityConfig="@xml/network_security_config" android:dataExtractionRules="@xml/data_extraction_rules" android:fullBackupContent="@xml/backup_rules">
+        <activity android:name="com.vibes.only.VoiceStudioActivity" android:exported="false" />
+        <receiver android:name="com.vibes.only.widget.VyronHomeWidget" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/vyron_home_widget_info" />
+        </receiver>
+        <activity android:name="com.vibes.only.AuthActivity" android:exported="false" />
+        <activity android:name="com.vibes.only.AuthCallbackActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="vibesonly" android:host="auth" android:path="/callback" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.vibes.only.MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.vibes.only.ui.SettingsActivity" android:exported="false" />
+        <activity android:name="com.vibes.only.ui.MemoryActivity" android:exported="false" />
+        <service
+            android:name="com.vibes.only.VoiceAssistantService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        <service
+            android:name="com.vibes.only.AppControlService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_service_config" />
+        </service>
+    </application>
+</manifest>

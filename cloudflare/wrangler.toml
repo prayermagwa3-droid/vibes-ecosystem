@@ -1,0 +1,7 @@
+name = "vibes-quantum-edge"
+main = "worker.js"
+compatibility_date = "2026-11-06"
+workers_dev = true
+
+[vars]
+VIBES_ORIGIN = "https://vibes-quantum-api.onrender.com"

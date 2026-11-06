@@ -1,0 +1,11 @@
+# Set these in the build environment or pass them as Gradle -P properties.
+# All values are API ROOTS: do not append /api or /api/v1.
+VIBES_RENDER_URL=https://vibes-quantum-api.onrender.com
+VIBES_CLOUDFLARE_URL=https://api.vibesquantum.tech
+VIBES_EXTRA_GATEWAY_URLS=https://vibesquantum.duckdns.org,https://vibesquantum.tech,https://vibesquantum.com,https://api.vibesquantum.com
+
+# Example build command from VyronX/:
+# VIBES_RENDER_URL=https://vibes-quantum-api.onrender.com \
+# VIBES_CLOUDFLARE_URL=https://api.vibesquantum.tech \
+# VIBES_EXTRA_GATEWAY_URLS='https://vibesquantum.duckdns.org,https://vibesquantum.tech,https://vibesquantum.com,https://api.vibesquantum.com' \
+# ./gradlew :app:assembleRelease

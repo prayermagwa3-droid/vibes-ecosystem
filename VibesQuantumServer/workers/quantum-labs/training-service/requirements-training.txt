@@ -1,0 +1,9 @@
+# Optional real pretrained-model LoRA training stack (install in a dedicated venv).
+# The tiny PyTorch smoke trainer only requires torch and the Python standard library.
+torch>=2.2,<3
+transformers>=4.45,<5
+peft>=0.13,<1
+accelerate>=1,<2
+safetensors>=0.4,<1
+# Optional, CUDA-only QLoRA backend; choose a build compatible with the installed CUDA/PyTorch.
+# bitsandbytes>=0.43,<1

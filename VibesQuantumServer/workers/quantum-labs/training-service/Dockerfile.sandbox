@@ -1,0 +1,27 @@
+# Build only with an immutable Python base image reference and a reviewed lock file.
+# Example: --build-arg PYTHON_BASE_IMAGE=python:3.11-slim@sha256:<verified-64-hex-digest>
+ARG PYTHON_BASE_IMAGE
+FROM ${PYTHON_BASE_IMAGE}
+
+ARG PYTHON_BASE_IMAGE
+ARG DEPENDENCY_LOCK_SHA256
+RUN case "${PYTHON_BASE_IMAGE}" in *@sha256:*) ;; *) echo "PYTHON_BASE_IMAGE must be pinned by sha256 digest" >&2; exit 1 ;; esac
+LABEL org.vibes.dependency-lock-sha256=${DEPENDENCY_LOCK_SHA256}
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /opt/vibes
+COPY requirements-training.lock /opt/vibes/requirements-training.lock
+RUN test -n "${DEPENDENCY_LOCK_SHA256}" \
+    && echo "${DEPENDENCY_LOCK_SHA256}  /opt/vibes/requirements-training.lock" | sha256sum -c - \
+    && python -m pip install --require-hashes -r /opt/vibes/requirements-training.lock
+
+COPY alis_tiny_sft_trainer.py /opt/vibes/alis_tiny_sft_trainer.py
+COPY alis_hf_lora_trainer.py /opt/vibes/alis_hf_lora_trainer.py
+
+# Runtime overrides this UID with the worker UID to make the output bind mount writable.
+USER 10001:10001
+WORKDIR /workspace

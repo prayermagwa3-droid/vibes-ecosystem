@@ -1,0 +1,188 @@
+# Vibes Quantum Engineering Workspace — Deployment Runbook
+
+## Purpose and behavior
+
+The workspace is a review-first engineering pipeline for source projects. It runs the following bounded loop:
+
+1. The Android App Builder accepts a source-project `.zip` or a single readable source file (`.kt`, `.java`, `.kts`, `.js`, `.ts`, `.py`, `.html`, `.css`, and other supported text extensions). A single file is wrapped in a synthetic ZIP for source analysis and patch proposals only; obvious credential/keystore file names and key/certificate extensions are rejected locally; the runner does not invent missing manifests, dependencies, or build commands. For real build/test, supply the complete source project ZIP. The server then validates and safely extracts it (path, symlink, size, entry-count and file-type checks; common credential files are excluded).
+2. Read configured source connectors and record whether external research was actually available; all pages/files are untrusted context.
+3. Ask configured AI provider capabilities `research` and `plan` for evidence notes, assumptions, a small change plan and measurable acceptance criteria.
+4. Create a clean baseline copy and a separate candidate working copy. The clean source tree is not overwritten by patches; build/test runs use temporary isolated worker containers.
+5. Run a baseline build/test command where supported, ask a coding provider for a bounded unified diff, validate/apply it only to the candidate copy, then run candidate tests.
+6. Ask the independent evaluation pass to judge observed results. At most 3 repair iterations are allowed per cycle. The default mobile client requests 3.
+7. Run independent testing, security and performance reviews in parallel, then pass their evidence to the integration lead. The integration lead can reconcile conflicting recommendations but cannot override a failed test, security BLOCK, missing worker or human release gate. Package a candidate ZIP after checking for common embedded credentials. `READY_FOR_REVIEW` means the configured tests and reviewers passed; it never means production approval or deployment.
+8. In opt-in continuous mode, wait about six hours, re-index and research the updated candidate, plan a distinct next improvement, then repeat. If a bounded repair cycle fails, the isolated candidate is retained and the next cycle tries a fresh plan; packaging/security blocks, missing worker infrastructure, or a reviewer BLOCK stop the loop for admin intervention. Owner/admin can request stop; the next stop checkpoint is at most about one minute during the idle interval. Build/test interruption also tries to terminate the active container.
+
+The server persists research/plan status, each specialist's assignment/status/summary, detected framework and dependencies, baseline/candidate test summaries, run history, and stop state under the private job workspace. After each baseline and candidate run, the worker writes a redacted `build-test-report.json`; it copies only allow-listed APK/AAB outputs under `build/outputs`, JUnit/Surefire XML, and Gradle test-report HTML out of the disposable test copy, subject to size limits and best-effort credential screening. The bundle is downloadable from authenticated `GET /api/v1/workspace/jobs/{jobId}/artifacts.zip`. If the worker is not configured, the report and the unavailable status can still be preserved, but that is not a successful build and no APK is claimed. The server preserves progress/job metadata under `VIBES_WORKSPACE_ROOT`. The Self-Improving Brain also persists outcome counts, evidence-tagged lessons, and the latest reflection under the private `brain/` subdirectory. Memory is keyed by a one-way digest of the app ID and normalized target-app name so one app key/project does not automatically inherit another app's lessons. Only test/reviewer-gated passes increment verified successes; failed cycles and blocked infrastructure/policy outcomes are recorded separately. Lessons are fed into later research, planning, coding, and continuous-cycle prompts. Brain memory is bounded to 40 lessons per target app. On server restart, in-flight jobs are marked `INTERRUPTED`; they are not silently resumed. The uploaded original ZIP is deleted after safe extraction. Source, baseline and candidate are separate copies; the baseline copy is deleted after its test run. Candidate ZIP and progress summaries stay in the private job directory until retention cleanup. Secret redaction is best-effort, not a guarantee.
+
+## Isolation and trust boundaries
+
+- Build/test is fail-closed. If the configured sandbox image or container runtime is unavailable, user code is not executed on the server host and the job reports `SANDBOX_NOT_CONFIGURED` or a similar blocker.
+- Containers are launched with network disabled, read-only container root FS, dropped capabilities, no-new-privileges, memory/CPU/PID limits, a non-root UID, and one project-directory writable mount. The process gets no server provider keys or gateway tokens.
+- Patch size, changed-file count, changed-line count, paths, symlinks and generated/cache paths are checked before patching. The source ZIP never modifies the live app or server code.
+- Candidate ZIPs containing text that matches common credential patterns are blocked from download; inspect redacted server metadata rather than copying secret values into logs.
+- `workspace:run` is a server API-key capability. Continuous start and stop additionally require `workspace:continuous` (or a gateway-admin credential). The Android Owner/Admin check is a local UX gate, **not** a server-verifiable user identity. Anyone who obtains the shared app key can exercise every scope on that key, including continuous mode. For strict per-user administration, add remote session/JWT role claims and bind job ownership/continuous authorization to those claims before exposing this to untrusted users. Until then, issue the continuous-capable key only for a trusted deployment, protect it in the existing secret store, restrict who can access the app, and revoke/rotate it if it leaks.
+- There is no automatic deploy/promotion route in this workspace pipeline. Import a candidate into the existing release workflow, run the release gate and rollback drill, and get a human admin approval before deployment.
+
+## Build the isolated worker image
+
+Run these commands from a trusted checkout's `Vibes_Quantum_Server` directory:
+
+```bash
+docker build -f sandbox/WorkspaceBuild.Dockerfile -t vibes-workspace-android:8.13-agp8.13.2 .
+docker image inspect vibes-workspace-android:8.13-agp8.13.2
+```
+
+The provided image installs system Gradle, Android SDK platforms/build-tools, Python/pytest, Node/npm, Maven, Go and Rust. Build it in trusted CI, scan it, and pin its immutable image digest in production instead of relying on a mutable tag. Do not allow workspace users to select a runner image, container command, mount path, or build command.
+
+### Offline dependency policy
+
+The candidate container has `--network=none`. The Dockerfile includes toolchains, **not every dependency for every arbitrary uploaded project**. Android Gradle plugins, Maven artifacts, npm packages, Go modules, Cargo crates, and Python packages must be available in a vetted cache/image beforehand. The runner seeds writable tmpfs homes from `/opt/vibes/cache/{gradle,npm,maven-repository,cargo,go-mod}` when those directories are populated by trusted image-build steps. Warm and verify the dependency caches for the specific projects you intend to build; do not copy credentials, repository settings with secrets, or untrusted cache content into these locations. Python project-specific dependencies must be installed into a trusted, reviewed worker image layer; the runner does not install arbitrary `requirements.txt` content. Missing dependencies must produce a failed/unavailable test result, never a fabricated pass. Do not turn on network access for untrusted build jobs as a workaround.
+
+## Server configuration
+
+Set these environment variables in the complete server deployment, using absolute paths owned by the server service account:
+
+```bash
+VIBES_WORKSPACE_ROOT=/var/lib/vibes/workspace-jobs
+VIBES_WORKSPACE_RUNNER=/opt/vibes/Vibes_Quantum_Server/scripts/workspace_runner.py
+VIBES_PYTHON=/usr/bin/python3
+VIBES_WORKSPACE_SANDBOX_RUNTIME=docker
+VIBES_WORKSPACE_SANDBOX_IMAGE=vibes-workspace-android:8.13-agp8.13.2
+VIBES_AI_PROVIDERS_FILE=/etc/vibes/ai-providers.json
+```
+
+Create the workspace root with permissions restricted to the service account (recommended mode `0700`); ensure enough disk space and quotas. `VIBES_WORKSPACE_RUNNER` must point to the deployed runner file, not a user-supplied path. Only the container runtime administrators should be able to access the Docker/Podman socket: access to that socket is effectively host-level authority.
+
+### AI provider
+
+Copy `config/ai-providers.example.json` to a deployment-managed, non-public configuration file and enable one provider with `research`, `plan`, and `code` capabilities. Provide a real model name. For a cloud provider, set its key via the environment variable named by `apiKeyEnv` and set real non-negative `inputCostPer1kUsd` and `outputCostPer1kUsd` values; providers without an explicit budget price are intentionally skipped. A local provider can be zero-cost for budgeting, but its configured endpoint must actually be reachable from the server process. Don't point a server running inside a container to its own `127.0.0.1` if the model service is on a different host/container.
+
+Enable source connectors separately if external research is desired. A connector returning no evidence is reported as unavailable/no results; model-generated ideas are hypotheses, not proven facts or novel discoveries.
+
+## Issue the Engine app key
+
+An administrator calls the server key-creation route using the gateway admin secret over the trusted deployment network. Use an app-bound key with the mobile app's exact app ID:
+
+```http
+POST /api/v1/keys
+X-Vibes-Gateway-Key: <server-admin-secret>
+Content-Type: application/json
+
+{"name":"Quantum Engineering Workspace","appId":"vibes-only-ai","scopes":["workspace:run","workspace:continuous"]}
+```
+
+Store the returned API key once in the Engine's existing connection/secret settings. The plaintext key is returned at creation time; the server stores its protected representation. For a non-continuous user, grant only `workspace:run`. Never ship `VIBES_GATEWAY_KEY` in the Android app.
+
+## HTTP API
+
+- `GET /api/v1/workspace/jobs` — latest 12 jobs belonging to the authenticated app key; gateway admins can see all recent jobs.
+- `GET /api/v1/workspace/brain?targetApp=Vibes%20Quantum%20Engine` — read app-key- and target-app-scoped self-improvement metrics and recent lessons. Requires `workspace:run` (or a gateway-admin credential).
+- `POST /api/v1/workspace/brain/reflect` — ask the configured planning provider to create a user-facing diagnosis and measurable experiment suggestions from saved outcomes. JSON body: `{"targetApp":"Vibes Quantum Engine"}`. This does not run code or approve a release; suggestions remain hypotheses until tested.
+- `POST /api/v1/workspace/jobs` — create a job (`targetApp`, `goal`, optional `continuous`, `maxIterations` 1–3).
+- `PUT /api/v1/workspace/jobs/{jobId}/archive` — upload source ZIP as `application/zip` (max 64 MiB).
+- `GET /api/v1/workspace/jobs/{jobId}` — current state, progress, research, plan, test report and evaluation.
+- `POST /api/v1/workspace/jobs/{jobId}/stop` — request a stop; authorization is checked server-side.
+- `GET /api/v1/workspace/jobs/{jobId}/candidate.zip` — download a packaged candidate if available and authorized.
+
+The mobile app uses HTTPS, the existing app-bound secret store and authenticated DownloadManager headers. If the server hostname/TLS or app key is not configured correctly, the workspace will not run. The local Owner/Admin toggle is not a replacement for remote user-role authorization; see the trust-boundary warning above.
+
+## States to expect
+
+- `AWAITING_UPLOAD`, `QUEUED`, `INSPECTING`, `RESEARCHING`, `PLANNING`, `TESTING`, `CODING`, `REPAIRING`, `EVALUATING`: active work.
+- `READY_FOR_REVIEW`: configured candidate test command and independent reviewer passed; still requires human/release approval.
+- `NEEDS_REPAIR`: bounded attempts ended without a verified pass; candidate may be available for inspection.
+- `AWAITING_BUILD_WORKER`: change was staged, but actual build/test could not run because the sandbox or supported test manifest was unavailable. This is **not** a pass.
+- `CANDIDATE_PACKAGING_BLOCKED`, `BLOCKED`, `FAILED`, `STOPPED`, `INTERRUPTED`: inspect job message/evidence before another attempt.
+- `CONTINUOUS_WAIT`: the current candidate is staged while a continuous job waits to begin fresh research for the next cycle.
+
+## Validation checklist before enabling users
+
+1. Build/scan the worker image; verify the configured `docker` or `podman` command is available to the server account.
+2. Configure an AI model with all three required capabilities and correct budget prices; run a non-sensitive test job against a disposable toy project.
+3. Confirm a good test project reaches `READY_FOR_REVIEW`, a deliberate failing project does not pass, a missing sandbox returns an unavailable state, and no test source runs on the server host.
+4. Test ZIP-slip, symlink, secret-redaction, large-archive, patch, stop and app-scope restrictions.
+5. Test the mobile history/poll/stop/download flows on a complete Android build, and test server routes on a complete Ktor build. This supplied source-fragment bundle has no root Gradle build files or Android manifest, so these end-to-end build/deploy tests were not possible in the current workspace.
+6. Add storage quotas, job TTL/retention policy, monitoring/alerts, secret management, TLS validation and backups appropriate for production. Keep deployment approval outside the agent's authority.
+
+
+## Agent Swarm, Universal App Builder and Build/Test Lab UI
+
+The Android Engineering Studio has separate Overview, Agent Swarm, App Builder, Build & Test, Run History, Automations, Projects and Connectors panels. Agent reports expose the specialist name, stage, status and summarized finding. The App Builder panel shows detected framework/ecosystem, languages, dependency manifests, sampled dependencies, entry points and proposed build/test command; the command is a detected suggestion, not evidence of execution. The Build & Test panel reports baseline/candidate outcomes, evaluation, progress and the authenticated build-artifact download action. Run stop and continuous start remain capability-gated.
+
+The Chat Lab retains a longer isolated transcript and wires assistant-message Good/Bad feedback, Teach, and Regenerate controls to the same learning/teaching services used by the model test workflow. This transcript remains separate from normal chat history. Feedback and teaching are candidates for subsequent evaluation, not automatic proof that an answer is correct.
+
+Framework detection is intentionally conservative. The runner can identify supported Gradle/Android, Maven, Node/React/Vite/Angular, Python, Rust, Go, Flutter and .NET markers when their manifests and entry files are present. Offline dependencies must already be in the trusted worker image/cache. Unknown or partial projects retain an empty build command and do not run an inferred host command. The source-only import is for analysis/proposal use; source ZIPs with a complete manifest are needed for meaningful build and regression testing.
+
+## Build worker image and disposable Android smoke test (updated)
+
+The build image now uses Gradle 8.13 / JDK 17 with Android Gradle Plugin 8.13.2 and Kotlin 2.2.20. During image build it compiles and unit-tests the included disposable Android fixture, then warms the Gradle dependency cache from that exact project. The job runtime remains offline and resource-limited. The image build itself is the authoritative proof that the Android SDK, plugin graph, and fixture work together.
+
+From a trusted checkout:
+
+```bash
+export VIBES_WORKSPACE_SANDBOX_RUNTIME=docker
+export VIBES_WORKSPACE_SANDBOX_IMAGE=vibes-workspace-android:8.13-agp8.13.2
+./scripts/configure_and_smoke_build_worker.sh
+```
+
+This script builds the worker image and runs the actual runner against a clean copy of `sandbox/fixtures/disposable-android`. It fails unless `TESTS_PASSED` and an APK artifact are collected. Do not set the production image as ready until this script completes successfully on the deployment host.
+
+## Deterministic candidate audit and review dossier
+
+Every bounded coding attempt now runs `scripts/workspace_runner.py audit` before the candidate build/test step. It compares the candidate against the preserved, safely extracted source tree; calculates per-file SHA-256 hashes; generates a unified diff; checks changed Python/JSON/XML/TOML/shell syntax when a trusted syntax checker is available; scans changed text for common embedded credentials; reports dependency and manifest changes; and flags high-risk build, permissions, authentication, security, deployment, migration, and release file changes. The audit is static: it does not execute candidate code.
+
+A hard audit blocker (for example, a detected token/private-key pattern, invalid supported syntax, a symlink, a no-op candidate, or an excessive accumulated change) skips candidate build execution and feeds the failure into the bounded repair attempt. If the audit tool itself is unavailable or produces an invalid result, the job blocks fail-closed. High-risk changes and the absence of a visible test-file change are review flags, not automatic proof of a defect; the independent specialist review must judge them. Secret values are redacted from the downloadable diff/report, so a redacted diff may not be directly applicable as a patch. Use its hashes and candidate ZIP for trusted review.
+
+The authenticated Build/Test artifacts download now includes these review files under `review/` when available:
+
+- `candidate-audit.json` — counts, SHA-256 hashes, changed paths, syntax checks, dependency/manifest deltas, blockers, warnings, and review flags.
+- `candidate-review.diff.txt` — bounded unified diff with common potential credential values redacted.
+- `release-dossier.txt` — goal, profile, plan, audit summary, baseline and candidate test evidence, reviewer reports, and explicit release limitations.
+
+The dossier is evidence for a human reviewer, not a software bill of health or a deployment approval. Static checks cannot prove semantic correctness or absence of vulnerabilities; the real isolated build/test and specialist checks remain required.
+
+The pipeline snapshots and compares against the preserved extracted source tree. The disposable baseline-test clone is deleted after its run and must not be referenced for later snapshot/comparison operations.
+
+## Candidate snapshots, diff comparison and rollback
+
+`scripts/workspace_control.py` supplies immutable SHA-256-indexed source snapshots and a verified rollback-to-new-candidate operation. It never overwrites a live checkout or deploys. Source comparison reports added/removed/changed files and is only a regression signal; build/test and independent evaluation remain required.
+
+```bash
+python3 scripts/workspace_control.py snapshot --project /path/to/candidate --store /var/lib/vibes/snapshots --label "baseline-v1" --known-good
+python3 scripts/workspace_control.py compare --baseline /path/to/baseline --candidate /path/to/candidate
+python3 scripts/workspace_control.py rollback --snapshot /var/lib/vibes/snapshots/SNAPSHOT_ID --destination /var/lib/vibes/rollback-candidate
+```
+
+Rollback verifies the stored manifest and file hashes, refuses tampered snapshots, restores into a new candidate directory, and marks the result as requiring review. It does not replace the active app or production checkout.
+
+## Persistent continuous-upgrade supervisor
+
+The control script stores state in SQLite with WAL and full synchronous commits. Mutating commands require a constant-time comparison of `VIBES_WORKSPACE_ADMIN_TOKEN` and `VIBES_WORKSPACE_ADMIN_TOKEN_PROVIDED`. Set both through a protected service environment/secret manager; never pass the token as a command-line argument. The persistent emergency stop is latched across process restarts and requires an explicit admin clear. Cycle, interval, max-duration, failure-threshold, and spend budgets are validated; reaching the configured failure/budget/cycle limit disables continuous mode. A budget of `0` means no dollar cap is configured, so production should set a real budget when AI usage is billable.
+
+```bash
+export VIBES_WORKSPACE_CONTROL_DB=/var/lib/vibes/workspace-control.sqlite3
+VIBES_WORKSPACE_CONTROL_SCRIPT=/opt/vibes/Vibes_Quantum_Server/scripts/workspace_control.py
+# Inject both values through the secret manager for the operator process:
+# VIBES_WORKSPACE_ADMIN_TOKEN and VIBES_WORKSPACE_ADMIN_TOKEN_PROVIDED
+python3 scripts/workspace_control.py supervisor status
+python3 scripts/workspace_control.py supervisor configure --interval 21600 --max-cycles 20 --failure-threshold 3 --budget-usd 5 --max-seconds 1800
+python3 scripts/workspace_control.py supervisor start
+python3 scripts/workspace_control.py supervisor emergency-stop
+python3 scripts/workspace_control.py supervisor clear-emergency
+```
+
+`WorkspaceEngineeringService` checks `canRun` before starting a continuous job and before each cycle, then records each completed pass/failure with the provider-reported estimated cost and measured duration. If the supervisor ledger cannot be reached or a result cannot be persisted, the continuous job stops fail-closed. The emergency stop prevents the next cycle; an already-running model request/container may finish until its own timeout or user stop, so use deployment process/container cancellation for immediate termination. Alert records are visible in supervisor status; email/webhook/SIEM delivery still requires deployment-specific integration. These Kotlin/server changes were source-reviewed but cannot be compiled here because the supplied bundle lacks server build definitions.
+
+## Admin supervisor API
+
+These routes require the gateway-admin authorization path; app-bound `workspace:continuous` keys do not administer the global supervisor:
+
+- `GET /api/v1/workspace/supervisor` — persistent status and latest alert records.
+- `POST /api/v1/workspace/supervisor/configure` — JSON `{ "intervalSeconds": 21600, "maxCycles": 20, "failureThreshold": 3, "budgetUsd": 5.0, "maxSeconds": 1800 }`.
+- `POST /api/v1/workspace/supervisor/start`
+- `POST /api/v1/workspace/supervisor/stop`
+- `POST /api/v1/workspace/supervisor/emergency-stop`
+- `POST /api/v1/workspace/supervisor/clear-emergency`
+
+The server requires `VIBES_WORKSPACE_ADMIN_TOKEN` to be held in its secret manager and passes it to the control process through the environment. Set `VIBES_WORKSPACE_CONTROL_SCRIPT` to the deployed absolute script path and `VIBES_WORKSPACE_CONTROL_DB` to a durable, permission-restricted SQLite file. See `WORKSPACE_WORKER_VALIDATION_REPORT.md` for the exact validation boundary.

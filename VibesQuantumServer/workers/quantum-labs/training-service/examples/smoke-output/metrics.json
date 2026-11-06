@@ -1,0 +1,48 @@
+{
+  "status": "COMPLETED",
+  "experiment_type": "tiny-supervised-byte-language-model-from-scratch",
+  "warning": "This is a small integration experiment, not fine-tuning of a foundation model and not evidence of broad intelligence improvement.",
+  "device": "cpu",
+  "device_name": "CPU",
+  "cuda_peak_memory_bytes": 0,
+  "torch_version": "2.10.0+cpu",
+  "python_version": "3.13.5",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "available_ram_bytes_at_start": 4410789888,
+  "free_disk_bytes_at_start": 31999254528,
+  "max_runtime_seconds": 3600,
+  "dataset_file_name": "tiny-smoke-approved.jsonl",
+  "dataset_sha256": "4588c54e7c5124e87628ffd5ba305b6a16a07d1e1376e36bd87df7cc72f4c833",
+  "example_counts": {
+    "total": 12,
+    "train": 8,
+    "validation": 2,
+    "test": 2
+  },
+  "epochs_requested": 1,
+  "epochs_completed": 1,
+  "resumed_from_epoch": 3,
+  "initial_train_loss": 4.29846312159257,
+  "final_train_loss": 3.909333263369773,
+  "initial_validation_loss": 4.282175699869792,
+  "final_validation_loss": 3.908503214518229,
+  "heldout_test_loss": 3.886857874253217,
+  "train_loss_decreased": true,
+  "parameter_fingerprint_before": "b3b400921f103dce2e97ec00dd9429f55f6df7f27dec1fb8825f06dc88b20458",
+  "parameter_fingerprint_after": "75cdabf0ea99b8e25370169cd76fb61d0af58ceb63bd2e1d3fbab199720ee3dc",
+  "parameters_changed": true,
+  "elapsed_seconds": 0.084,
+  "history": [
+    {
+      "epoch": 4,
+      "train_loss": 3.909333263369773,
+      "validation_loss": 3.908503214518229,
+      "optimizer_train_loss": 4.151615815196964
+    }
+  ],
+  "artifacts": [
+    "model-state.pt",
+    "checkpoint-last.pt",
+    "metrics.json"
+  ]
+}

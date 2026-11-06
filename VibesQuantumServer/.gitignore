@@ -1,0 +1,21 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+local.properties
+.env
+data/vibes-apps.json
+data/vibes-api-keys.json
+data/vibes-source-learning.json
+config/ai-providers.json
+data/vibes-council-review.json
+data/vibes-learning.json
+data/vibes-curriculum.json
+data/vibes-user-apps.json
+data/vibes-encrypted-vault.json
+
+# Account data and local secrets
+data/
+server.env
+*.env

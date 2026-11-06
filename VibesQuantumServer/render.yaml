@@ -1,0 +1,65 @@
+# Optional standalone Blueprint file if you connect VibesQuantumServer as its own Render repo.
+# For the combined Vibes Ecosystem repo, use the root-level render.yaml instead.
+services:
+  - type: web
+    name: vibes-quantum-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/v1/health
+    disk:
+      name: vibes-quantum-data
+      mountPath: /var/data
+      sizeGB: 5
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 10000
+      - key: VIBES_PUBLIC_BASE_URL
+        value: https://vibes-quantum-api.onrender.com
+      - key: VIBES_PUBLIC_ORIGINS
+        value: https://vibes-quantum-api.onrender.com,https://api.vibesquantum.tech,https://vibesquantum.duckdns.org,https://vibesquantum.tech,https://vibesquantum.com,https://api.vibesquantum.com
+      # Render's public ingress is Cloudflare-fronted; only enable this on that ingress.
+      - key: VIBES_TRUST_CF_CONNECTING_IP
+        value: "true"
+      # Set only to verified ingress/proxy IPs or CIDRs. Never trust 0.0.0.0/0 or ::/0.
+      - key: VIBES_TRUSTED_PROXIES
+        sync: false
+      - key: VIBES_DATABASE_URL
+        value: jdbc:sqlite:/var/data/vibes-quantum.db
+      - key: VIBES_DATA_DIRECTORY
+        value: /var/data
+      - key: VIBES_BACKUP_DIRECTORY
+        value: /var/data/backups
+      - key: VIBES_AUTH_SECURITY_FILE
+        value: /var/data/vibes-auth-security.json
+      - key: VIBES_JWT_SIGNING_KEY_FILE
+        value: /var/data/vibes-jwt-signing.key
+      - key: VIBES_REGISTRY_FILE
+        value: /var/data/vibes-apps.json
+      - key: VIBES_API_KEYS_FILE
+        value: /var/data/vibes-api-keys.json
+      - key: VIBES_SOURCE_STORE_FILE
+        value: /var/data/vibes-source-learning.json
+      - key: VIBES_CURRICULUM_STORE_FILE
+        value: /var/data/vibes-curriculum.json
+      - key: VIBES_LEARNING_STORE_FILE
+        value: /var/data/vibes-learning.json
+      - key: VIBES_USER_APP_REGISTRY_FILE
+        value: /var/data/vibes-user-apps.json
+      - key: VIBES_ENCRYPTED_VAULT_FILE
+        value: /var/data/vibes-encrypted-vault.json
+      - key: VIBES_SECURITY_AUDIT_FILE
+        value: /var/data/security-audit.jsonl
+      - key: VIBES_TRAINING_JOBS_FILE
+        value: /var/data/vibes-training-jobs.json
+      - key: VIBES_GATEWAY_KEY
+        sync: false
+      - key: VIBES_GATEWAY_KEY_PREVIOUS
+        value: ""
+      - key: VIBES_ADMIN_EMAILS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false

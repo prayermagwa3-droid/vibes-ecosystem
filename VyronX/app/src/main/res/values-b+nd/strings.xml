@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vibes Vyron X</string>
+    <string name="app_tagline">Cabanga okungaphezulu. Qhubeka ufunda.</string>
+    <string name="language_section">Ulimi lamagama obungcitshi</string>
+    <string name="interface_language_label">Ulimi lwe-app (isigaba sokuqala)</string>
+    <string name="language_review_notice">DRAFT — IsiShona lesiNdebele akukahlolisiswa ngabatshameli bolimi bomdabu. Amanye amakhasi e-app aseNgisini. Ungathembeli ezihumushweni ezingakahlolisiswa ezinqumweni zempilo, zomthetho, zezimali kumbe zamakhemikhali ezokulima.</string>
+    <string name="language_updated_draft">Ulimi olukhethiweyo lugciniwe. Amanye amazwi e-app azahlala esiNgisini kuze kuhlolisiswe ngabakhuluma ulimi bomdabu.</string>
+    <string name="language_english">IsiNgisi (en)</string>
+    <string name="language_shona_draft">ChiShona (sn) — uhlaka olusadinga ukuhlolwa</string>
+    <string name="language_ndebele_draft">isiNdebele (nd) — uhlaka olusadinga ukuhlolwa</string>
+</resources>
