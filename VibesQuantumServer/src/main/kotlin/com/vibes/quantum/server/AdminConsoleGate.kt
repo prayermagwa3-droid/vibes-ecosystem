@@ -104,6 +104,7 @@ internal fun Route.adminConsoleRoutes(
     val clientId = googleClientId?.trim().orEmpty()
     val googleReady = clientId.isNotBlank() && adminEmails.isNotEmpty()
     AdminConsoleSessions.configure(googleReady, securityStore, adminEmails)
+    fun effectivePort(uri: java.net.URI): Int = if (uri.port >= 0) uri.port else if (uri.scheme.equals("https", true)) 443 else 80
     fun sameOrigin(value: String?): Boolean {
         val supplied = runCatching { java.net.URI(value?.trim().orEmpty()) }.getOrNull() ?: return false
         if (supplied.userInfo != null || supplied.query != null || supplied.fragment != null || supplied.path.orEmpty().isNotEmpty()) return false
@@ -118,7 +119,6 @@ internal fun Route.adminConsoleRoutes(
                 effectivePort(supplied) == effectivePort(expected)
         }
     }
-    fun effectivePort(uri: java.net.URI): Int = if (uri.port >= 0) uri.port else if (uri.scheme.equals("https", true)) 443 else 80
     fun audit(actor: String, action: String, outcome: String, route: String) {
         runCatching { auditLog?.appendPrivileged(PrivilegedSecurityEvent(Instant.now().toString(), actor, action, route, outcome)) }
     }

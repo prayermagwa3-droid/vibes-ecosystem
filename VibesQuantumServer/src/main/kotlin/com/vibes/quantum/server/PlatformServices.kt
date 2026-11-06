@@ -182,8 +182,8 @@ class EntitlementStore(private val database: VibesDatabase) {
     }
 
     private fun entitlementInTransaction(c: Connection, userId: String): EntitlementSnapshot {
-        val current = c.prepareStatement("SELECT tier,status,product_id,expires_at_ms FROM subscriptions WHERE user_id=?").use { p -> p.setString(1, userId); p.executeQuery().use { rs -> if (rs.next()) listOf(rs.getString(1), rs.getString(2), rs.getString(3), rs.getLong(4)) else emptyList() } }
-        val expiry = (current.getOrNull(3) as? Long)?.takeIf { it > 0 }
+        val current = c.prepareStatement("SELECT tier,status,product_id,expires_at_ms FROM subscriptions WHERE user_id=?").use { p -> p.setString(1, userId); p.executeQuery().use { rs -> if (rs.next()) listOf(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)) else emptyList() } }
+        val expiry = current.getOrNull(3)?.toLongOrNull()?.takeIf { it > 0 }
         val active = current.getOrNull(1) == "ACTIVE" && (expiry == null || expiry > System.currentTimeMillis())
         val tier = if (active) current.getOrNull(0)?.uppercase()?.takeIf { it in policies } ?: "FREE" else "FREE"
         val policy = policies.getValue(tier); val day = LocalDate.now(ZoneOffset.UTC).toString()
